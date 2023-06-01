@@ -1,0 +1,116 @@
+//wielen
+int ENA = 13;
+int IN1 = 12;
+int IN2 = 14;
+
+int ENB = 25;
+int IN3 = 27;
+int IN4 = 26;
+
+int Speed = 110;
+//sensor
+int R = 33;
+int M = 35;
+int L = 34;
+
+const int frequency = 30000;
+const int pwm_channel = 0;
+const int resolution = 8;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(ENA, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+
+  pinMode(ENB, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+
+  ledcSetup(pwm_channel, frequency, resolution);
+  ledcAttachPin(ENA, pwm_channel);
+  ledcAttachPin(ENB, pwm_channel);
+}
+
+void loop() {
+  int RV = analogRead(R);
+  int MV = analogRead(M);
+  int LV = analogRead(L);
+  //0=zwart
+  printstats(RV,MV,LV);                      
+
+  if (LV > 2000 && MV < 1000 && RV > 2000) {
+    vooruit();
+
+  } else if (LV > 3000 && MV > 3000 && RV > 3000) {
+    stop();
+  } else if (LV < 1000 && MV < 1000 && RV < 1000) {
+    stop();
+
+  } else if (LV < 1000 && RV > 2500) {
+    Naarlinks();
+
+  } else if (LV > 2000 && RV < 1000) {
+    Naarrechts();
+  }
+  else
+  {
+      Serial.println("");
+
+  }
+}
+void printstats(int x, int y, int z) {
+  Serial.print(" | ");
+  Serial.print(x);
+  Serial.print(" | ");
+  Serial.print(y);
+  Serial.print(" | ");
+  Serial.print(z);
+  Serial.print(" | ");
+
+}
+void vooruit() {
+  ledcWrite(pwm_channel, Speed);
+
+  analogWrite(ENA, Speed);
+  analogWrite(ENB, Speed);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  Serial.println("vooruit");
+}
+void Naarlinks() {
+  ledcWrite(pwm_channel, Speed);
+
+  analogWrite(ENA, Speed);
+  analogWrite(ENB, 75);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH); 
+  digitalWrite(IN4, LOW);
+  Serial.println("links  ");
+}
+void Naarrechts() {
+  ledcWrite(pwm_channel, Speed);
+
+  analogWrite(ENA, 75);
+  analogWrite(ENB, Speed);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  Serial.println("rechts");
+}
+void stop() {
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
